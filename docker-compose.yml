@@ -1,0 +1,46 @@
+version: '3'
+# NETWORKS
+networks:
+  proxy:
+    external: true
+
+#SERVICES
+services:
+  bitwarden:
+    image: vaultwarden/server:latest
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - proxy
+    environment:
+      # After you setted up your user(s)
+      - "SIGNUPS_ALLOWED=false"
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=proxy
+      # Redirect to get the certs
+      - traefik.http.middlewares.redirect-https.redirectScheme.scheme=https
+      - traefik.http.middlewares.redirect-https.redirectScheme.permanent=true
+      # routers & services
+      - traefik.http.routers.bitwarden-ui-https.rule=Host(`sub.my-domain.tld`)
+      - traefik.http.routers.bitwarden-ui-https.entrypoints=https
+      - traefik.http.routers.bitwarden-ui-https.tls=true
+      - traefik.http.routers.bitwarden-ui-https.service=bitwarden-ui
+      - traefik.http.routers.bitwarden-ui-http.rule=Host(`sub.my-domain.tld`)
+      - traefik.http.routers.bitwarden-ui-http.entrypoints=http
+      - traefik.http.routers.bitwarden-ui-http.middlewares=redirect-https
+      - traefik.http.routers.bitwarden-ui-http.service=bitwarden-ui
+      - traefik.http.services.bitwarden-ui.loadbalancer.server.port=80
+      - traefik.http.routers.bitwarden-websocket-https.rule=Host(`sub.my-domain.tld`) && Path(`/notifications/hub`)
+      - traefik.http.routers.bitwarden-websocket-https.entrypoints=https
+      - traefik.http.routers.bitwarden-websocket-https.tls=true
+      - traefik.http.routers.bitwarden-websocket-https.service=bitwarden-websocket
+      - traefik.http.routers.bitwarden-websocket-http.rule=Host(`sub.my-domain.tld`) && Path(`/notifications/hub`)
+      - traefik.http.routers.bitwarden-websocket-http.entrypoints=http
+      - traefik.http.routers.bitwarden-websocket-http.middlewares=redirect-https
+      - traefik.http.routers.bitwarden-websocket-http.service=bitwarden-websocket
+      - traefik.http.services.bitwarden-websocket.loadbalancer.server.port=3012
+
+    volumes:
+      # Stockage des fichiers Let's encrypt
+      - ./data/:/data
