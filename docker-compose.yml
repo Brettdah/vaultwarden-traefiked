@@ -8,7 +8,7 @@ networks:
 #SERVICES
 services:
   bitwarden:
-    image: vaultwarden/server:1.28.1-alpine
+    image: vaultwarden/server:1.29.1-alpine
     security_opt:
       - no-new-privileges:true
     networks:
