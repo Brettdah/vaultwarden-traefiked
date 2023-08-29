@@ -3,6 +3,7 @@ version: '3'
 networks:
   proxy:
     external: true
+  vaultinternal:
 
 #SERVICES
 services:
@@ -12,6 +13,7 @@ services:
       - no-new-privileges:true
     networks:
       - proxy
+      - vaultinternal
     environment:
       # After you setted up your user(s)
       - "SIGNUPS_ALLOWED=false"
